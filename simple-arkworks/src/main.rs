@@ -1,11 +1,11 @@
 use ark_bn254::Bn254;
+use ark_bn254::Fr;
 use ark_ff::PrimeField;
 use ark_groth16::Groth16;
 use ark_r1cs_std::{fields::fp::FpVar, prelude::*};
 use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystemRef, SynthesisError};
 use ark_snark::SNARK;
 use rand::thread_rng;
-use ark_bn254::Fr;
 
 #[derive(Clone)]
 struct SumCircuit<F: PrimeField> {
@@ -47,27 +47,23 @@ struct CompareCircuit<F: PrimeField> {
 
 impl<F: PrimeField> ConstraintSynthesizer<F> for CompareCircuit<F> {
     fn generate_constraints(self, cs: ConstraintSystemRef<F>) -> Result<(), SynthesisError> {
-        let larger_len = self.larger.as_ref().map_or(0, |v| v.len());
-        let shorter_len = self.shorter.as_ref().map_or(0, |v| v.len());
-        assert!(
-            shorter_len <= larger_len,
-            "Shorter array must be smaller than or equal to larger array"
-        );
+        let shorter = self.shorter.ok_or(SynthesisError::AssignmentMissing)?;
+        let larger = self.larger.ok_or(SynthesisError::AssignmentMissing)?;
+
+        if shorter.len() > larger.len() {
+            return Err(SynthesisError::Unsatisfiable);
+        }
 
         // Public
-        let shorter_vars = self
-            .shorter
-            .ok_or(SynthesisError::AssignmentMissing)?
+        let shorter_vars = shorter
             .iter()
             .map(|&val| FpVar::new_input(cs.clone(), || Ok(val)))
             .collect::<Result<Vec<_>, _>>()?;
 
         // Witness
-        let larger_vars = self
-            .larger
-            .ok_or(SynthesisError::AssignmentMissing)?
+        let larger_vars = larger
             .iter()
-            .take(shorter_len)
+            .take(shorter.len())
             .map(|&val| FpVar::new_witness(cs.clone(), || Ok(val)))
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -136,5 +132,5 @@ fn prove_verify_starts_with(small: &'static str, large: &'static str) {
 
 fn main() {
     prove_verify_sum(3, 4, 7);
-    prove_verify_starts_with("bcd", "bcdef");
+    prove_verify_starts_with("bad", "bcdef");
 }
