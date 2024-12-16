@@ -67,6 +67,7 @@ impl<F: PrimeField> ConstraintSynthesizer<F> for CompareCircuit<F> {
             .larger
             .ok_or(SynthesisError::AssignmentMissing)?
             .iter()
+            .take(shorter_len)
             .map(|&val| FpVar::new_witness(cs.clone(), || Ok(val)))
             .collect::<Result<Vec<_>, _>>()?;
 
