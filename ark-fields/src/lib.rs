@@ -1,19 +1,17 @@
 use ark_ff::{Fp256, MontBackend, UniformRand};
 use ark_test_curves::{bls12_381::{Fr, G1Projective}, PrimeField, PrimeGroup};
-use std::{hash::Hash, ops::Mul};
-use ark_test_curves::CurveGroup;
 use sha2::{Sha256, Digest};
-use ark_serialize::{CanonicalSerialize, CanonicalDeserialize};
+use ark_serialize::CanonicalSerialize;
 use ark_test_curves::bls12_381::FrConfig;
 use ark_test_curves::bls12_381::g1::Config;
 use ark_test_curves::short_weierstrass::Projective;
 
-struct Keypair {
+pub struct Keypair {
     private_key: Fp256<MontBackend<FrConfig, 4>>,
     public_key: Projective<Config>,
 }
 
-struct Signature {
+pub struct Signature {
     R: Projective<Config>,
     z: Fp256<MontBackend<FrConfig, 4>>,
 }

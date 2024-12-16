@@ -38,7 +38,6 @@ use frame_system::limits::{BlockLength, BlockWeights};
 use pallet_attendance::Mintable;
 use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter, Multiplier};
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::hashing;
 use sp_runtime::{traits::One, Perbill};
 use sp_version::RuntimeVersion;
 
@@ -165,7 +164,7 @@ parameter_types! {
 
 pub struct NoMint<T>( PhantomData<T>);
 impl<T> Mintable<T> for NoMint<T> {
-	fn mint(account: &T) {
+	fn mint(_account: &T) {
 		
 	}
 }
