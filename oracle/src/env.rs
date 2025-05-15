@@ -4,6 +4,7 @@ const ENV_ORACLE_KEY: &str = "ORACLE_KEY";
 
 pub(crate) fn try_hex_to_array<const N: usize>(hex_string: String) -> Result<[u8; N], String> {
     let hex_string = hex_string.strip_prefix("0x").unwrap_or(&hex_string);
+    print!("{}", hex_string);
     assert!(hex_string.len() == N * 2, "invalid hex string length");
     let mut out = [0u8; N];
     hex::decode_to_slice(hex_string, &mut out).map_err(|e| e.to_string())?;

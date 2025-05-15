@@ -7,7 +7,7 @@ use blake2_256::Blake2_256;
 use clap::{Parser, Subcommand};
 use ed25519::Ed25519;
 use geohash::Geohash;
-use oracle::{sign_location, Key, Signer};
+use oracle::{Key, Signer, location, sign_location};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -37,7 +37,7 @@ async fn main() {
         Commands::Generate => {
             let (secret_key, public_key) = Ed25519::generate_key();
             println!(
-                "Private: 0x{}\nPublic: 0x{}",
+                "Private=0x{}\nPublic=0x{}",
                 env::array_to_hex(secret_key.as_bytes()),
                 env::array_to_hex(public_key.as_bytes()),
             );
@@ -49,7 +49,8 @@ async fn main() {
                     .expect("a well formed hexadecimal string for the key"),
             );
 
-            let signed_location = sign_location::<Geohash, Ed25519, Blake2_256>(key, accuracy)
+            let location = location::<Geohash>(accuracy).await.expect("valid location");
+            let signed_location = sign_location::<Geohash, Ed25519, Blake2_256>(key, location)
                 .await
                 .expect("signed location");
 

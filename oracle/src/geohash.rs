@@ -35,4 +35,3 @@ impl Location for Geohash {
         geohash::encode(Coord { x, y }, accuarcy as usize).map_err(|e| e.to_string())
     }
 }
-

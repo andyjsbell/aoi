@@ -44,13 +44,18 @@ pub trait Signer {
     fn generate_key() -> (Key, Key);
 }
 
-pub async fn sign_location<L, S, H>(key: Key, accuracy: u8) -> Result<(L::Output, S::Signature), String>
+pub async fn location<L>(accuracy: u8) -> Result<L::Output, String>
+where
+    L: Location,
+{
+    L::current_location(accuracy).await
+}
+
+pub async fn sign_location<L, S, H>(key: Key, location: L::Output) -> Result<S::Signature, String>
 where
     L: Location,
     S: Signer,
     H: Hasher,
 {
-    let location = L::current_location(accuracy).await?;
-    let signature = S::sign(H::hash(location.as_ref())?, key)?;
-    Ok((location, signature))
+    S::sign(H::hash(location.as_ref())?, key)
 }
