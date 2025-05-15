@@ -1,18 +1,17 @@
 use ed25519_dalek::{Signer, SigningKey};
-use oracle::{Hash, Key};
+use oracle::{Hash, Key, SignerError};
 use rand::rngs::OsRng;
-
 pub struct Ed25519;
 
 impl oracle::Signer for Ed25519 {
     type Signature = Vec<u8>;
 
-    fn sign(message: Hash, key: Key) -> Result<Self::Signature, String> {
+    fn sign(message: Hash, key: Key) -> Result<Self::Signature, SignerError> {
         let signing_key = SigningKey::from_bytes(key.as_bytes());
 
         let signature = signing_key
             .try_sign(message.as_bytes())
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| SignerError::SignatureFailed(e.to_string()))?;
 
         Ok(signature.to_vec())
     }

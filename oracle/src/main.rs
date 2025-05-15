@@ -7,7 +7,7 @@ use blake2_256::Blake2_256;
 use clap::{Parser, Subcommand};
 use ed25519::Ed25519;
 use geohash::Geohash;
-use oracle::{Key, Signer, location, sign_location};
+use oracle::{location, sign_location, Key, Signer};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -43,11 +43,17 @@ async fn main() {
             );
         }
         Commands::Run { key, accuracy } => {
-            let key = Key::new(
-                env::try_key_from_environment()
-                    .or_else(|_| env::try_hex_to_array(key))
-                    .expect("a well formed hexadecimal string for the key"),
-            );
+            // More graceful error handling
+            let key_result =
+                env::try_key_from_environment().or_else(|_| env::try_hex_to_array(key));
+
+            let key = match key_result {
+                Ok(key_bytes) => Key::new(key_bytes),
+                Err(e) => {
+                    eprintln!("Error: Failed to get key: {}", e);
+                    std::process::exit(1);
+                }
+            };
 
             let location = location::<Geohash>(accuracy).await.expect("valid location");
             let signed_location = sign_location::<Geohash, Ed25519, Blake2_256>(key, location)
